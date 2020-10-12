@@ -29,10 +29,15 @@ jobs:
       working-directory: apis/userprofile
     - run: npm test
       working-directory: apis/userprofile
-    - name: The job has failed
-      run: az extension add --name azure-devops
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.ADO_PAT}}
       if: failure()
-     
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+      if: failure()
+    - run: az boards work-item create --title "Pulling ${{ github.ref }} into master" --type Bug
+      if: failure()
 
   pull-request:
     needs: build
