@@ -6,25 +6,47 @@ name: Node.js CI
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: '**'
+    paths: 'apis/userprofile/**'
   pull_request:
-    branches: [ main ]
+    branches: '**'
+    paths: 'apis/userprofile/**'
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x, 12.x, 14.x]
-
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 8.x
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '8.x'
     - run: npm ci
+      working-directory: apis/userprofile
     - run: npm run build --if-present
+      working-directory: apis/userprofile
     - run: npm test
+      working-directory: apis/userprofile
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
+      if: failure()
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+      if: failure()
+    - run: az boards work-item create --title "Pulling ${{ github.ref }} into master" --type Bug
+      if: failure()
+
+  pull-request:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: pull-request
+      uses: repo-sync/pull-request@v2
+      with:
+        source_branch: ""                                 
+        destination_branch: 'main'                      
+        pr_title: "Pulling ${{ github.ref }} into master"    
+        pr_allow_empty: false                             
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+      
