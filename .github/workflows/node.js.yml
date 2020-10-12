@@ -7,8 +7,10 @@ on:
   workflow_dispatch:
   push:
     branches: '**'
+    paths: 'apis/userprofile'
   pull_request:
     branches: '**'
+    paths: 'apis/userprofile'
 
 jobs:
   build:
