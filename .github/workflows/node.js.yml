@@ -30,8 +30,9 @@ jobs:
     - run: npm test
       working-directory: apis/userprofile
     - name: The job has failed
-      if: ${{ failure() }}
       run: az extension add --name azure-devops
+      if: failure()
+     
 
   pull-request:
     needs: build
