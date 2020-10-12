@@ -29,10 +29,7 @@ jobs:
       working-directory: apis/userprofile
     - run: npm test
       working-directory: apis/userprofile
-    - name: Azure Login
-      uses: Azure/login@v1.1
-      with:
-        creds: ${{secrets.ADO_PAT}}
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
       if: failure()
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
       if: failure()
