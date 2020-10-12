@@ -40,10 +40,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - run: docker build apis/userprofile/.
-    
+    - run: docker build .
+      working-directory: apis/userprofile
+
   pull-request:
-    needs: build
+    needs: [build, package]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
