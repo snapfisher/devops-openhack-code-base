@@ -29,3 +29,18 @@ jobs:
       working-directory: apis/userprofile
     - run: npm test
       working-directory: apis/userprofile
+
+
+  pull-request:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: pull-request
+      uses: repo-sync/pull-request@v2
+      with:
+        source_branch: ""                                 
+        destination_branch: 'main'                      
+        pr_title: "Pulling ${{ github.ref }} into master"    
+        pr_allow_empty: false                             
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+      
