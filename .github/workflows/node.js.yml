@@ -36,6 +36,12 @@ jobs:
     - run: az boards work-item create --title "Pulling ${{ github.ref }} into master" --type Bug
       if: failure()
 
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - run: docker build apis/userprofile/.
+    
   pull-request:
     needs: build
     runs-on: ubuntu-latest
