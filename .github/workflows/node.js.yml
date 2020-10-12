@@ -21,7 +21,7 @@ jobs:
 
     steps:
     - name: Navigate to userprofile api
-      run: cd apis/userprofile
+      run: cd $GITHUB_WORKSPACE/apis/userprofile
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
