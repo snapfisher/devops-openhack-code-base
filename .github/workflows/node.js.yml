@@ -41,8 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-    - run: ls -l 
-      working-directory: apis/userprofile
+    - run: ls
+    - run: pwd
     - name: build docker container 
       run: docker build --tag dohc3/1.0 $GITHUB_WORKSPACE/apis/userprofile/Dockerfile 
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
