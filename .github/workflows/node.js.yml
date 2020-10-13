@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-    - run: ls -l /home/runner/work/devops-openhack-code-base
+    - run: ls -l apis/userprofile
     - run: ls -l /home/runner/work/devops-openhack-code-base/devops-openhack-code-base
     - name: build docker container 
       run: docker build --tag dohc3/1.0 $GITHUB_WORKSPACE/apis/userprofile/Dockerfile 
