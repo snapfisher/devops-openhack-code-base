@@ -11,9 +11,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Azure Login
-      uses: Azure/login@v1.1
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
-
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull devopsoh/api-poi:changeme
