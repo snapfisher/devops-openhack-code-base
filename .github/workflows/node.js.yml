@@ -40,8 +40,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - run: docker build . --file Dockerfile --tag devopsopenhack/challenge3
+    - name: build docker container 
       working-directory: apis/userprofile
+      run: docker build . --file Dockerfile --tag devopsopenhack/challenge3    
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
       if: failure()
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
