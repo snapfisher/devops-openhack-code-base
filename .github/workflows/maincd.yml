@@ -11,7 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v2
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: az acr build --image "devopsoh/api-poi:changeme" --registry openhack22acr.azurecr.io --file Dockerfile .
+      working-directory: apis/userprofile
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
@@ -23,8 +26,8 @@ jobs:
     steps:
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-trips:changeme
-    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
-    - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-trips:changeme openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_NUMBER}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_NUMBER}
       
   pulluser:
 
@@ -33,8 +36,8 @@ jobs:
     steps:
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-user-java:changeme
-    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
-    - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-user-java:changeme openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_NUMBER}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_NUMBER}
       
   pulluserprofile:
 
@@ -43,5 +46,5 @@ jobs:
     steps:
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme
-    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
-    - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_NUMBER}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_NUMBER}
