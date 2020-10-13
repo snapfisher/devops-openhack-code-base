@@ -28,7 +28,7 @@ jobs:
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22poi'
-        images: openhack22acr.azurecr.io/devopsoh/api-poi:$GITHUB_RUN_NUMBER
+        images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_number }}'
       
   pulltrips:
 
@@ -49,7 +49,7 @@ jobs:
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22trips'
-        images: openhack22acr.azurecr.io/devopsoh/api-trips:$GITHUB_RUN_NUMBER
+        images: 'openhack22acr.azurecr.io/devopsoh/api-trips:${{ github.run_number }}'
       
   pulluser:
 
@@ -69,7 +69,7 @@ jobs:
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22userjava'
-        images: openhack22acr.azurecr.io/devopsoh/api-user-java:$GITHUB_RUN_NUMBER
+        images: 'openhack22acr.azurecr.io/devopsoh/api-user-java:${{ github.run_number }}'
 
 
   pulluserprofile:
@@ -90,4 +90,4 @@ jobs:
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22userprofile'
-        images: openhack22acr.azurecr.io/devopsoh/api-userprofile:$GITHUB_RUN_NUMBER
+        images: 'openhack22acr.azurecr.io/devopsoh/api-userprofile:${{ github.run_number }}'
