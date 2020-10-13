@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-  #  - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
   
     - name: Azure Login
       uses: Azure/login@v1.1
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
 
-  #  - run: az acr build --image "devopsoh/api-poi:changeme" --registry openhack22acr.azurecr.io --file Dockerfile .
-  #    working-directory: apis/userprofile
+    - run: az acr build --image "devopsoh/api-poi:changeme" --registry openhack22acr.azurecr.io --file Dockerfile .
+      working-directory: apis/poi/web
       
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
