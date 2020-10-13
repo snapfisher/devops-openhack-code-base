@@ -42,8 +42,7 @@ jobs:
     steps:
     - run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: build docker container 
-      run: docker build . --file Dockerfile --tag devopsopenhack/challenge3    
-      working-directory: apis/userprofile
+      run: docker build --tag dohc3/1.0 apis/userprofile/.  
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
       if: failure()
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
