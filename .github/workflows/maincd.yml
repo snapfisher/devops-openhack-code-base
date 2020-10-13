@@ -6,10 +6,88 @@ on:
     branches: 'main'
 
 jobs:
-  pullapi1:
+  pullpoi:
 
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v2
+  
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+
+    #- run: az acr build --image "devopsoh/api-poi:changeme" --registry openhack22acr.azurecr.io --file Dockerfile .
+    #  working-directory: apis/poi/web
+      
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
-    - run: docker pull devopsoh/api-poi:changeme
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'openhack22poi'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_number }}'
+      
+  pulltrips:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+          
+          
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-trips:changeme
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-trips:changeme openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_NUMBER}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_NUMBER}
+  
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'openhack22trips'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-trips:${{ github.run_number }}'
+      
+  pulluser:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-user-java:changeme
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-user-java:changeme openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_NUMBER}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_NUMBER}
+
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'openhack22userjava'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-user-java:${{ github.run_number }}'
+
+
+  pulluserprofile:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_NUMBER}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_NUMBER}
+
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'openhack22userprofile'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-userprofile:${{ github.run_number }}'
