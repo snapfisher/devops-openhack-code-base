@@ -1,4 +1,4 @@
-name: main CD
+name: bluegreen5 CD
 
 on:
   workflow_dispatch:
