@@ -33,16 +33,22 @@ jobs:
       if: failure()
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
       if: failure()
-    - run: az boards work-item create --title "Pulling ${{ github.ref }} into master" --type Bug
+    - run: az boards work-item create --title "Pulling ${{ github.ref }} into main" --type Bug
       if: failure()
 
   package:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - run: docker build .
+    - run: docker build . --file Dockerfile --tag devopsopenhack/challenge3
       working-directory: apis/userprofile
-
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
+      if: failure()
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+      if: failure()
+    - run: az boards work-item create --title "Container creation; Pulling ${{ github.ref }} into main" --type Bug
+      if: failure()
+      
   pull-request:
     needs: [build, package]
     runs-on: ubuntu-latest
