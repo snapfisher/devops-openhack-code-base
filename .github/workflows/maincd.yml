@@ -6,10 +6,34 @@ on:
 #    branches: 'main'
 
 jobs:
-  pullapi1:
+  pullpoi:
 
     runs-on: ubuntu-latest
 
     steps:
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
+      
+  pulltrips:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-trips:changeme
+      
+  pulluser:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-user-java:changeme
+      
+  pulluserprofile:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme
