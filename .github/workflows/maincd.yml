@@ -2,8 +2,8 @@ name: main CD
 
 on:
   workflow_dispatch:
-  push:
-    branches: 'main'
+#  push:
+#    branches: 'main'
 
 jobs:
   pullapi1:
@@ -12,4 +12,4 @@ jobs:
 
     steps:
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
-    - run: docker pull devopsoh/api-poi:changeme
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
