@@ -1,0 +1,19 @@
+name: main CD
+
+on:
+  workflow_dispatch:
+#  push:
+#    branches: 'main'
+
+jobs:
+  pullapi1:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+
+    - run: docker pull devopsoh/api-poi:changeme
