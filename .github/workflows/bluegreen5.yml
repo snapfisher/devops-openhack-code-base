@@ -80,7 +80,7 @@ jobs:
    
     - uses: azure/webapps-deploy@v2
       with:
-        app-name: 'openhack22poi'
+        app-name: 'openhack22trips'
         slot-name: 'staging'
         images: 'openhack22acr.azurecr.io/devopsoh/api-trips:${{ github.run_id }}'
         
