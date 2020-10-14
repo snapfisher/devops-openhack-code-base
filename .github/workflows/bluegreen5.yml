@@ -10,7 +10,14 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    steps:        
+    steps:  
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc 
+    - run: |
+        BOARDID=$(az boards work-item create --title "Deployment POI Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done 
+          
+          
 #    - uses: actions/checkout@v2
     - name: Azure Login
       uses: Azure/login@v1.1
