@@ -52,7 +52,7 @@ jobs:
   
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
-      if: $POICHECK != 200 
+      if: ${{ POICHECK != 200 }}
     - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
      
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
