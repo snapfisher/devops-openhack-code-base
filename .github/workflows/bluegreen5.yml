@@ -63,7 +63,10 @@ jobs:
         echo ::set=output name=POICHECK_VALUE::${POICHECK}
 
     - name: echo steps poicheck
-      run: echo ${{ steps.extract_poicheck.poicheck }}
+      run: echo '${{ steps.extract_poicheck.POICHECK_VALUE }}'
+
+    - run: exit 1
+      if: steps.extract_poicheck.POICHECK_VALUE == '200'      
 
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
