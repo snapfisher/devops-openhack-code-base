@@ -76,7 +76,6 @@ jobs:
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-trips:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-trips:changeme openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_ID}
-    - run: az webapp deployment slot create --name openhack22trips --resource-group openhack22rg --slot newversion
    
     - uses: azure/webapps-deploy@v2
       with:
@@ -125,7 +124,6 @@ jobs:
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-user-java:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-user-java:changeme openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_ID}
-    - run: az webapp deployment slot create --name openhack22userjava --resource-group openhack22rg --slot newversion
 
     - uses: azure/webapps-deploy@v2
       with:
@@ -175,7 +173,6 @@ jobs:
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
-    - run: az webapp deployment slot create --name openhack22userprofile --resource-group openhack22rg --slot newversion
       
     - uses: azure/webapps-deploy@v2
       with:
