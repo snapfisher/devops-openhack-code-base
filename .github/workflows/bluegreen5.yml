@@ -37,50 +37,39 @@ jobs:
       with:
         time: '60s'
         
-    - name: check slot deployment
-      uses: wei/curl@master
-      with:
-        args: https://openhack22poi-staging.azurewebsites.net/api/healthcheck/poi
-        
-    - run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
-  
-#    - run: echo "POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)" >> $GITHUB_ENV
-  
-#    - name: echo poicheck
-#      run: echo $POICHECK
-  
-#    - name: Extract poicheck
-#      shell: bash
-#      run: echo "##[set-output name=poicheck;]$(echo ${POICHECK##*/})"
-#      id: extract_poicheck
-
     - name: initialize workflow variables
-      id: vars
+      id: vars-p-staging
       shell: bash
       run: |
-        POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)
-        echo "The poicheck value was ${POICHECK}.  That's what it was."
-        echo ::set-output name=POICHECK::${POICHECK}
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi-staging.azurewebsites.net/api/healthcheck/poi)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
+      if: steps.vars-p-staging.outputs.HCHECK == '200'      
 
-    - name: echo steps poicheck
-      run: echo '${{ steps.vars.outputs.POICHECK }}'
-
-    - run: exit 1
-      if: steps.vars.outputs.POICHECK == '200'      
-
+    - name: initialize workflow variables
+      id: vars-p
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
-      if: steps.vars.outputs.POICHECK != '200' 
+      if: steps.vars-p.outputs.POICHECK != '200' 
+      
     - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
      
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
     - run: az boards work-item create --title "Deployment of POI in staging; ${{ github.run_id }} failed" --type Bug
-      if: failure()
+      if: steps.vars-p-staging.outputs.HCHECK != '200'      
     - run: az boards work-item create --title "Deployment of POI in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: steps.extract_poicheck.poicheck != '200'
+      if: steps.vars-p.outputs.HCHECK != '200'
     - run: exit 1
-      if: steps.extract_poicheck.poicheck != '200'          
+      if: steps.vars-p.outputs.HCHECK != '200' ||  steps.vars-p-staging.outputs.HCHECK != '200'           
     - run: az boards work-item create --title "Deployment POI Production; ${{ github.run_id }} " --type Task
       
       
@@ -112,33 +101,38 @@ jobs:
       with:
         time: '60s'
         
-    - name: check slot deployment
-      uses: wei/curl@master
-      with:
-        args: https://openhack22trips-staging.azurewebsites.net/api/healthcheck/trips
+    - name: initialize workflow variables
+      id: vars-t-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22trips-staging.azurewebsites.net/api/healthcheck/trips)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22trips --slot staging --target-slot production
+      if: steps.vars-t-staging.outputs.HCHECK == '200'  
   
-    - run: echo "TRIPSCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22trips.azurewebsites.net/api/healthcheck/trips)" >> $GITHUB_ENV
-  
-    - name: Extract tripscheck
+    - name: initialize workflow variables
+      id: vars-t
       shell: bash
-      run: echo "##[set-output name=tripscheck;]$(echo ${TRIPSCHECK##*/})"
-      id: extract_tripscheck  
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22trips.azurewebsites.net/api/healthcheck/trips)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
   
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22trips --slot staging --target-slot production
-      if: steps.extract_tripscheck.tripscheck != '200'
+      if: steps.vars-t.outputs.HCHECK != '200'
     - run: az webapp stop --name openhack22trips --resource-group openhack22rg --slot staging
   
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
     - run: az boards work-item create --title "Deployment of TRIPS in staging; ${{ github.run_id }} failed" --type Bug
-      if: failure()
+      if: steps.vars-t-staging.outputs.HCHECK != 200
     - run: az boards work-item create --title "Deployment of TRIPS in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: steps.extract_tripscheck.tripscheck != '200'
+      if: steps.vars-t.outputs.HCHECK != '200'
     - run: exit 1
-      if: steps.extract_tripscheck.tripscheck != '200'    
+      if: steps.vars-t.outputs.HCHECK != '200' ||  steps.vars-t-staging.outputs.HCHECK != '200'    
     - run: az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }} " --type Task
       
   pulluser:  
@@ -168,33 +162,38 @@ jobs:
       with:
         time: '60s'
         
-    - name: check slot deployment
-      uses: wei/curl@master
-      with:
-        args: https://openhack22userjava-staging.azurewebsites.net/api/healthcheck/user-java
+    - name: initialize workflow variables
+      id: vars-j-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userjava-staging.azurewebsites.net/api/healthcheck/user-java)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22userjava --slot staging --target-slot production
+      if: steps.vars-j-staging.outputs.HCHECK == '200' 
   
-    - run: echo "USERJAVACHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userjava.azurewebsites.net/api/healthcheck/user-java)" >> $GITHUB_ENV
-
-    - name: Extract userjavacheck
+    - name: initialize workflow variables
+      id: vars-j
       shell: bash
-      run: echo "##[set-output name=userjavacheck;]$(echo ${USERJAVACHECK##*/})"
-      id: extract_userjavacheck 
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userjava.azurewebsites.net/api/healthcheck/user-java)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
 
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userjava --slot staging --target-slot production
-      if: steps.extract_userjavacheck.userjavacheck != '200'
+      if: steps.vars-j.outputs.HCHECK != '200'
     - run: az webapp stop --name openhack22userjava --resource-group openhack22rg --slot staging
       
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
     - run: az boards work-item create --title "Deployment of USER-JAVA in staging; ${{ github.run_id }} failed" --type Bug
-      if: failure()
+      if: steps.vars-j-staging.outputs.HCHECK != '200'
     - run: az boards work-item create --title "Deployment of USER-JAVA in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: steps.extract_userjavacheck.userjavacheck != '200'
+      if: steps.vars-j.outputs.HCHECK != '200'
     - run: exit 1
-      if: steps.extract_userjavacheck.userjavacheck != '200'
+      if: steps.vars-j.outputs.HCHECK != '200' || steps.vars-j-staging.outputs.HCHECK != '200'
     - run: az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }} " --type Task
 
   pulluserprofile:
@@ -224,29 +223,34 @@ jobs:
       with:
         time: '60s'
         
-    - name: check slot deployment
-      uses: wei/curl@master
-      with:
-        args: https://openhack22userprofile-staging.azurewebsites.net/api/healthcheck/user
+    - name: initialize workflow variables
+      id: vars-u-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userprofile-staging.azurewebsites.net/api/healthcheck/user)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
-  
-    - run: echo "USERCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userprofile.azurewebsites.net/api/healthcheck/user)" >> $GITHUB_ENV
-
-    - name: Extract usercheck
+      if: steps.vars-u-staging.outputs.HCHECK == '200' 
+      
+    - name: initialize workflow variables
+      id: vars-u
       shell: bash
-      run: echo "##[set-output name=usercheck;]$(echo ${USERCHECK##*/})"
-      id: extract_usercheck 
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userprofile.azurewebsites.net/api/healthcheck/user)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK
 
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
-      if: steps.extract_usercheck.usercheck != '200'
+      if: steps.vars-u.outputs.HCHECK == '200'
     - run: az webapp stop --name openhack22userprofile --resource-group openhack22rg --slot staging
       
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
     - run: az boards work-item create --title "Deployment of USER in staging; ${{ github.run_id }} failed" --type Bug
-      if: failure()
+      if: steps.vars-u-staging.outputs.HCHECK == '200'
     - run: az boards work-item create --title "Deployment of USER in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: steps.extract_usercheck.usercheck != '200'
+      if: steps.vars-u.outputs.HCHECK == '200'
     - run: az boards work-item create --title "Deployment USER Production; ${{ github.run_id }} " --type Task
