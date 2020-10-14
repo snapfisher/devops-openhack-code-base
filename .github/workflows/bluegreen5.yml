@@ -44,22 +44,29 @@ jobs:
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
   
-    - run: echo "POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)" >> $GITHUB_ENV
+#    - run: echo "POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)" >> $GITHUB_ENV
   
-    - name: echo poicheck
-      run: echo $POICHECK
+#    - name: echo poicheck
+#      run: echo $POICHECK
   
-    - name: Extract poicheck
-      shell: bash
-      run: echo "##[set-output name=poicheck;]$(echo ${POICHECK##*/})"
+#    - name: Extract poicheck
+#      shell: bash
+#      run: echo "##[set-output name=poicheck;]$(echo ${POICHECK##*/})"
+#      id: extract_poicheck
+
+    - name: initialize workflow variables
       id: extract_poicheck
-    
+      shell: bash
+      run: |
+        POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)
+        echo ::set=output name=POICHECK_VALUE::${POICHECK}
+
     - name: echo steps poicheck
       run: echo ${{ steps.extract_poicheck.poicheck }}
 
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
-      if: steps.extract_poicheck.poicheck != '200' 
+      if: steps.extract_poicheck.POICHECK_VALUE != '200' 
     - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
      
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
