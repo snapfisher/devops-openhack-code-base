@@ -36,6 +36,8 @@ jobs:
       uses: wei/curl@master
       with:
         args: https://openhack22poi-staging.azurewebsites.net/api/healthcheck/poi
+        
+    - run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
       
 #  pulltrips:
 #
