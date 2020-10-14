@@ -29,7 +29,8 @@ jobs:
       
     - uses: azure/webapps-deploy@v2
       with:
-        app-name: 'openhack22poi-newversion'
+        app-name: 'openhack22poi'
+        slot-name: 'newversion'
         images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_id }}'
       
 #  pulltrips:
