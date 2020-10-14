@@ -55,22 +55,22 @@ jobs:
 #      id: extract_poicheck
 
     - name: initialize workflow variables
-      id: extract_poicheck
+      id: vars
       shell: bash
       run: |
         POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)
         echo "The poicheck value was ${POICHECK}.  That's what it was."
-        echo ::set=output name=POICHECK_VALUE::${POICHECK}
+        echo ::set=output name=POICHECK::${POICHECK}
 
     - name: echo steps poicheck
-      run: echo '${{ steps.extract_poicheck.POICHECK_VALUE }}'
+      run: echo '${{ steps.vars.output.POICHECK }}'
 
     - run: exit 1
-      if: steps.extract_poicheck.POICHECK_VALUE == '200'      
+      if: steps.vars.output.POICHECK == '200'      
 
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
-      if: steps.extract_poicheck.POICHECK_VALUE != '200' 
+      if: steps.vars.output.POICHECK != '200' 
     - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
      
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
