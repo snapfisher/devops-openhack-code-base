@@ -12,7 +12,10 @@ jobs:
 
     steps:
 #    - uses: actions/checkout@v2
-  
+    - run: echo "POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhak22poi.azurewebsites.net/api/healthcheck/poi)" >> $GITHUB_ENV
+    - name: echo poicheck
+      run: echo "${{ github.poicheck }}"
+        
     - name: Azure Login
       uses: Azure/login@v1.1
       with:
