@@ -46,6 +46,9 @@ jobs:
   
     - run: echo "POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)" >> $GITHUB_ENV
   
+    - name: echo poicheck
+      run: echo $POICHECK
+  
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
       if: github.poicheck != '200' 
