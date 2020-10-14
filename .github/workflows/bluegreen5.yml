@@ -31,6 +31,11 @@ jobs:
         app-name: 'openhack22poi'
         slot-name: 'staging'
         images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_id }}'
+        
+    - name: check slot deployment
+      uses: wei/curl@master
+      with:
+        args: https://openhack22poi-staging.azurewebsites.net/api/healthcheck/poi
       
 #  pulltrips:
 #
