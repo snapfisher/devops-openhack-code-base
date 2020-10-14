@@ -25,7 +25,12 @@ jobs:
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
     - run: az webapp start --name openhack22poi --resource-group openhack22rg --slot staging
-            
+
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22poi'
@@ -91,6 +96,11 @@ jobs:
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_ID}
     - run: az webapp start --name openhack22trips --resource-group openhack22rg --slot staging
       
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'      
+      
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22trips'
@@ -153,6 +163,11 @@ jobs:
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_ID}
     - run: az webapp start --name openhack22userjava --resource-group openhack22rg --slot staging
 
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22userjava'
@@ -214,7 +229,12 @@ jobs:
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
     - run: az webapp start --name openhack22userprofile --resource-group openhack22rg --slot staging
-      
+
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22userprofile'
