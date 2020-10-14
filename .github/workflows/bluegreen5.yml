@@ -46,7 +46,7 @@ jobs:
         echo ::set-output name=HCHECK::${HCHECK}
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
-      if: steps.vars-p-staging.outputs.HCHECK == '200'      
+      if: steps.vars-p-staging.outputs.HCHECK != '200'      
 
     - name: initialize workflow variables
       id: vars-p
@@ -110,7 +110,7 @@ jobs:
         echo ::set-output name=HCHECK::${HCHECK}
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22trips --slot staging --target-slot production
-      if: steps.vars-t-staging.outputs.HCHECK == '200'  
+      if: steps.vars-t-staging.outputs.HCHECK != '200'  
   
     - name: initialize workflow variables
       id: vars-t
@@ -171,7 +171,7 @@ jobs:
         echo ::set-output name=HCHECK::${HCHECK}
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22userjava --slot staging --target-slot production
-      if: steps.vars-j-staging.outputs.HCHECK == '200' 
+      if: steps.vars-j-staging.outputs.HCHECK != '200' 
   
     - name: initialize workflow variables
       id: vars-j
@@ -232,7 +232,7 @@ jobs:
         echo ::set-output name=HCHECK::${HCHECK
         
     - run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
-      if: steps.vars-u-staging.outputs.HCHECK == '200' 
+      if: steps.vars-u-staging.outputs.HCHECK != '200' 
       
     - name: initialize workflow variables
       id: vars-u
