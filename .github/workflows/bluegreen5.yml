@@ -75,8 +75,10 @@ jobs:
     - run: az boards work-item create --title "Deployment of POI in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: steps.vars-p.outputs.HCHECK != '200'
     - run: exit 1
-      if: steps.vars-p.outputs.HCHECK != '200' ||  steps.vars-p-staging.outputs.HCHECK != '200'           
-    - run: az boards work-item create --title "Deployment POI Production; ${{ github.run_id }} " --type Task
+      if: steps.vars-p.outputs.HCHECK != '200' ||  steps.vars-p-staging.outputs.HCHECK != '200'        
+    - run: |
+        BOARDID = $(az boards work-item create --title "Deployment POI Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id $BOARDID --state Done 
       
       
   pulltrips:
@@ -145,8 +147,9 @@ jobs:
       if: steps.vars-t.outputs.HCHECK != '200'
     - run: exit 1
       if: steps.vars-t.outputs.HCHECK != '200' ||  steps.vars-t-staging.outputs.HCHECK != '200'    
-    - run: az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }} " --type Task
-      
+    - run: |
+        BOARDID = $(az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id $BOARDID --state Done    
   pulluser:  
     needs: [pullpoi, pulltrips]
     runs-on: ubuntu-latest
@@ -212,7 +215,9 @@ jobs:
       if: steps.vars-j.outputs.HCHECK != '200'
     - run: exit 1
       if: steps.vars-j.outputs.HCHECK != '200' || steps.vars-j-staging.outputs.HCHECK != '200'
-    - run: az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }} " --type Task
+    - run: |
+        BOARDID = $(az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id $BOARDID --state Done
 
   pulluserprofile:
     needs: [pullpoi, pulltrips, pulluser]
@@ -252,7 +257,7 @@ jobs:
       run: |
         HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userprofile-staging.azurewebsites.net/api/healthcheck/user)
         echo "set-output name=HCHECK::${HCHECK}"
-        echo ::set-output name=HCHECK::${HCHECK
+        echo ::set-output name=HCHECK::${HCHECK}
         
     - name: deployment successful, swap
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
@@ -264,7 +269,7 @@ jobs:
       run: |
         HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userprofile.azurewebsites.net/api/healthcheck/user)
         echo "set-output name=HCHECK::${HCHECK}"
-        echo ::set-output name=HCHECK::${HCHECK
+        echo ::set-output name=HCHECK::${HCHECK}
 
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
@@ -277,4 +282,7 @@ jobs:
       if: steps.vars-u-staging.outputs.HCHECK == '200'
     - run: az boards work-item create --title "Deployment of USER in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: steps.vars-u.outputs.HCHECK == '200'
-    - run: az boards work-item create --title "Deployment USER Production; ${{ github.run_id }} " --type Task
+    - run: |
+        BOARDID = $(az boards work-item create --title "Deployment USER Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id $BOARDID --state Done
+        
