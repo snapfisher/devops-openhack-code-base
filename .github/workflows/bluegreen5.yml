@@ -2,17 +2,16 @@ name: bluegreen5 CD
 
 on:
   workflow_dispatch:
-  push:
-    branches: 'main'
+#  push:
+#    branches: 'main'
 
 jobs:
   pullpoi:
 
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
-  
+    steps:  
+#    - uses: actions/checkout@v2
     - name: Azure Login
       uses: Azure/login@v1.1
       with:
@@ -23,15 +22,67 @@ jobs:
       
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
-    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
-    - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_NUMBER}
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
+    - run: az webapp start --name openhack22poi --resource-group openhack22rg --slot staging
+
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22poi'
-        images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_number }}'
+        slot-name: 'staging'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_id }}'
+        
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+        
+    - name: initialize workflow variables
+      id: vars-p-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi-staging.azurewebsites.net/api/healthcheck/poi)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - name: deployment successful, swap
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
+      if: steps.vars-p-staging.outputs.HCHECK == '200'      
+
+    - name: initialize workflow variables
+      id: vars-p
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - name: if the final result does not work, switch back
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
+      if: steps.vars-p.outputs.HCHECK != '200' 
+      
+    - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+     
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+    - run: az boards work-item create --title "Deployment of POI in staging; ${{ github.run_id }} failed" --type Bug
+      if: steps.vars-p-staging.outputs.HCHECK != '200'      
+    - run: az boards work-item create --title "Deployment of POI in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
+      if: steps.vars-p.outputs.HCHECK != '200'
+    - run: exit 1
+      if: steps.vars-p.outputs.HCHECK != '200' ||  steps.vars-p-staging.outputs.HCHECK != '200'        
+    - run: |
+        BOARDID=$(az boards work-item create --title "Deployment POI Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done 
+      
       
   pulltrips:
-
+    needs: pullpoi
     runs-on: ubuntu-latest
 
     steps:
@@ -43,16 +94,65 @@ jobs:
           
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-trips:changeme
-    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-trips:changeme openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_NUMBER}
-    - run: docker push openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_NUMBER}
-  
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-trips:changeme openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_ID}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_ID}
+    - run: az webapp start --name openhack22trips --resource-group openhack22rg --slot staging
+      
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'      
+      
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22trips'
-        images: 'openhack22acr.azurecr.io/devopsoh/api-trips:${{ github.run_number }}'
-      
-  pulluser:
-
+        slot-name: 'staging'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-trips:${{ github.run_id }}'
+        
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+        
+    - name: initialize workflow variables
+      id: vars-t-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22trips-staging.azurewebsites.net/api/healthcheck/trips)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - name: deployment successful, swap
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22trips --slot staging --target-slot production
+      if: steps.vars-t-staging.outputs.HCHECK == '200'  
+  
+    - name: initialize workflow variables
+      id: vars-t
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22trips.azurewebsites.net/api/healthcheck/trips)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+  
+    - name: if the final result does not work, switch back
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22trips --slot staging --target-slot production
+      if: steps.vars-t.outputs.HCHECK != '200'
+    - run: az webapp stop --name openhack22trips --resource-group openhack22rg --slot staging
+  
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+    - run: az boards work-item create --title "Deployment of TRIPS in staging; ${{ github.run_id }} failed" --type Bug
+      if: steps.vars-t-staging.outputs.HCHECK != 200
+    - run: az boards work-item create --title "Deployment of TRIPS in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
+      if: steps.vars-t.outputs.HCHECK != '200'
+    - run: exit 1
+      if: steps.vars-t.outputs.HCHECK != '200' ||  steps.vars-t-staging.outputs.HCHECK != '200'    
+    - run: |
+        BOARDID=$(az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done    
+        
+  pulluser:  
+    needs: [pullpoi, pulltrips]
     runs-on: ubuntu-latest
 
     steps:
@@ -63,17 +163,65 @@ jobs:
 
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-user-java:changeme
-    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-user-java:changeme openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_NUMBER}
-    - run: docker push openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_NUMBER}
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-user-java:changeme openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_ID}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_ID}
+    - run: az webapp start --name openhack22userjava --resource-group openhack22rg --slot staging
+
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
 
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22userjava'
-        images: 'openhack22acr.azurecr.io/devopsoh/api-user-java:${{ github.run_number }}'
+        slot-name: 'staging'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-user-java:${{ github.run_id }}'
+        
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+        
+    - name: initialize workflow variables
+      id: vars-j-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userjava-staging.azurewebsites.net/api/healthcheck/user-java)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - name: deployment successful, swap
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22userjava --slot staging --target-slot production
+      if: steps.vars-j-staging.outputs.HCHECK == '200' 
+  
+    - name: initialize workflow variables
+      id: vars-j
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userjava.azurewebsites.net/api/healthcheck/user-java)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
 
+    - name: if the final result does not work, switch back
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22userjava --slot staging --target-slot production
+      if: steps.vars-j.outputs.HCHECK != '200'
+    - run: az webapp stop --name openhack22userjava --resource-group openhack22rg --slot staging
+      
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+    - run: az boards work-item create --title "Deployment of USER-JAVA in staging; ${{ github.run_id }} failed" --type Bug
+      if: steps.vars-j-staging.outputs.HCHECK != '200'
+    - run: az boards work-item create --title "Deployment of USER-JAVA in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
+      if: steps.vars-j.outputs.HCHECK != '200'
+    - run: exit 1
+      if: steps.vars-j.outputs.HCHECK != '200' || steps.vars-j-staging.outputs.HCHECK != '200'
+    - run: |
+        BOARDID=$(az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done
 
   pulluserprofile:
-
+    needs: [pullpoi, pulltrips, pulluser]
     runs-on: ubuntu-latest
 
     steps:
@@ -84,10 +232,58 @@ jobs:
         
     - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme
-    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_NUMBER}
-    - run: docker push openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_NUMBER}
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
+    - run: az webapp start --name openhack22userprofile --resource-group openhack22rg --slot staging
+
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
 
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22userprofile'
-        images: 'openhack22acr.azurecr.io/devopsoh/api-userprofile:${{ github.run_number }}'
+        slot-name: 'staging'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-userprofile:${{ github.run_id }}'
+        
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+        
+    - name: initialize workflow variables
+      id: vars-u-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userprofile-staging.azurewebsites.net/api/healthcheck/user)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - name: deployment successful, swap
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
+      if: steps.vars-u-staging.outputs.HCHECK == '200' 
+      
+    - name: initialize workflow variables
+      id: vars-u
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22userprofile.azurewebsites.net/api/healthcheck/user)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+
+    - name: if the final result does not work, switch back
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
+      if: steps.vars-u.outputs.HCHECK == '200'
+    - run: az webapp stop --name openhack22userprofile --resource-group openhack22rg --slot staging
+      
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
+    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+    - run: az boards work-item create --title "Deployment of USER in staging; ${{ github.run_id }} failed" --type Bug
+      if: steps.vars-u-staging.outputs.HCHECK == '200'
+    - run: az boards work-item create --title "Deployment of USER in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
+      if: steps.vars-u.outputs.HCHECK == '200'
+    - run: |
+        BOARDID=$(az boards work-item create --title "Deployment USER Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done
+        
