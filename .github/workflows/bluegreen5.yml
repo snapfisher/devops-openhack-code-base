@@ -25,17 +25,18 @@ jobs:
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
-      
+    - run: az webapp start --name openhack22poi --resource-group openhack22rg --slot staging
+            
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22poi'
         slot-name: 'staging'
         images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_id }}'
         
-    - name: Sleep for 300 seconds
+    - name: Sleep for 60 seconds
       uses: jakejarvis/wait-action@master
       with:
-        time: '300s'
+        time: '60s'
         
     - name: check slot deployment
       uses: wei/curl@master
@@ -49,20 +50,21 @@ jobs:
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
       if: ${{ github.poicheck != '200' }}
-      
+    - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+     
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-      if: ${{ failure() || github.poicheck != '200' }}
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-      if: ${{ failure() || github.poicheck != '200' }}
     - run: az boards work-item create --title "Deployment of POI in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of POI in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: ${{ github.poicheck != '200' }}
-      
+    - run: exit 1
+      if: ${{ github.poicheck != '200' }}           
+    - run: az boards work-item create --title "Deployment POI Production; ${{ github.run_id }} " --type Task
       
       
   pulltrips:
-
+    needs: pullpoi
     runs-on: ubuntu-latest
 
     steps:
@@ -76,17 +78,18 @@ jobs:
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-trips:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-trips:changeme openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-trips:${GITHUB_RUN_ID}
-   
+    - run: az webapp start --name openhack22trips --resource-group openhack22rg --slot staging
+      
     - uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack22trips'
         slot-name: 'staging'
         images: 'openhack22acr.azurecr.io/devopsoh/api-trips:${{ github.run_id }}'
         
-    - name: Sleep for 300 seconds
+    - name: Sleep for 60 seconds
       uses: jakejarvis/wait-action@master
       with:
-        time: '300s'
+        time: '60s'
         
     - name: check slot deployment
       uses: wei/curl@master
@@ -100,18 +103,20 @@ jobs:
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22trips --slot staging --target-slot production
       if: ${{ github.tripscheck != '200' }}
-      
-    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-      if: ${{ failure() || github.tripscheck != '200' }}
+    - run: az webapp stop --name openhack22trips --resource-group openhack22rg --slot staging
+  
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-      if: ${{ failure() || github.tripscheck != '200' }}
     - run: az boards work-item create --title "Deployment of TRIPS in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of TRIPS in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: ${{ github.tripscheck != '200' }}
+    - run: exit 1
+      if: ${{ github.tripscheck != '200' }}     
+    - run: az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }} " --type Task
       
-  pulluser:
-
+  pulluser:  
+    needs: [pullpoi, pulltrips]
     runs-on: ubuntu-latest
 
     steps:
@@ -124,6 +129,7 @@ jobs:
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-user-java:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-user-java:changeme openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-user-java:${GITHUB_RUN_ID}
+    - run: az webapp start --name openhack22userjava --resource-group openhack22rg --slot staging
 
     - uses: azure/webapps-deploy@v2
       with:
@@ -131,10 +137,10 @@ jobs:
         slot-name: 'staging'
         images: 'openhack22acr.azurecr.io/devopsoh/api-user-java:${{ github.run_id }}'
         
-    - name: Sleep for 300 seconds
+    - name: Sleep for 60 seconds
       uses: jakejarvis/wait-action@master
       with:
-        time: '300s'
+        time: '60s'
         
     - name: check slot deployment
       uses: wei/curl@master
@@ -148,19 +154,20 @@ jobs:
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userjava --slot staging --target-slot production
       if: ${{ github.userjavacheck != '200' }}
+    - run: az webapp stop --name openhack22userjava --resource-group openhack22rg --slot staging
       
-    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-      if: ${{ failure() || github.userjavacheck != '200' }}
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-      if: ${{ failure() || github.userjavacheck != '200' }}
     - run: az boards work-item create --title "Deployment of USER-JAVA in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of USER-JAVA in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: ${{ github.userjavacheck != '200' }}
-
+    - run: exit 1
+      if: ${{ github.userjavacheck != '200' }}
+    - run: az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }} " --type Task
 
   pulluserprofile:
-
+    needs: [pullpoi, pulltrips, pulluser]
     runs-on: ubuntu-latest
 
     steps:
@@ -173,6 +180,7 @@ jobs:
     - run: docker pull openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme
     - run: docker tag openhack22acr.azurecr.io/devopsoh/api-userprofile:changeme openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
     - run: docker push openhack22acr.azurecr.io/devopsoh/api-userprofile:${GITHUB_RUN_ID}
+    - run: az webapp start --name openhack22userprofile --resource-group openhack22rg --slot staging
       
     - uses: azure/webapps-deploy@v2
       with:
@@ -180,10 +188,10 @@ jobs:
         slot-name: 'staging'
         images: 'openhack22acr.azurecr.io/devopsoh/api-userprofile:${{ github.run_id }}'
         
-    - name: Sleep for 300 seconds
+    - name: Sleep for 60 seconds
       uses: jakejarvis/wait-action@master
       with:
-        time: '300s'
+        time: '60s'
         
     - name: check slot deployment
       uses: wei/curl@master
@@ -197,12 +205,12 @@ jobs:
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
       if: ${{ github.usercheck != '200' }}
+    - run: az webapp stop --name openhack22userprofile --resource-group openhack22rg --slot staging
       
-    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-      if: ${{ failure() || github.usercheck != '200' }}
+    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-      if: ${{ failure() || github.usercheck != '200' }}
     - run: az boards work-item create --title "Deployment of USER in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of USER in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: ${{ github.usercheck != '200' }}
+    - run: az boards work-item create --title "Deployment USER Production; ${{ github.run_id }} " --type Task
