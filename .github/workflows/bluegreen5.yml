@@ -60,7 +60,7 @@ jobs:
       run: |
         POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)
         echo "The poicheck value was ${POICHECK}.  That's what it was."
-        echo ::set=output name=POICHECK::${POICHECK}
+        echo ::set-output name=POICHECK::${POICHECK}
 
     - name: echo steps poicheck
       run: echo '${{ steps.vars.outputs.POICHECK }}'
