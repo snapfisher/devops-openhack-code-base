@@ -46,15 +46,9 @@ jobs:
       if: ${{ $POICHECK != 200 }}
       
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-      if: failure()
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-      if: failure()
     - run: az boards work-item create --title "Deployment of POI in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
-    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-      if: ${{ $POICHECK != 200 }    
-    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-      if: ${{ $POICHECK != 200 }    
     - run: az boards work-item create --title "Deployment of POI in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: ${{ $POICHECK != 200 }    
       
