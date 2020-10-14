@@ -53,6 +53,9 @@ jobs:
       shell: bash
       run: echo "##[set-output name=poicheck;]$(echo $POICHECK)"
       id: extract_poicheck
+    
+    - name: echo steps poicheck
+      run: echo steps.extract_poicheck.poicheck
 
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
