@@ -52,7 +52,7 @@ jobs:
     - run: az boards work-item create --title "Deployment of POI in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of POI in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: ${{ github.poicheck != 200 }    
+      if: ${{ github.poicheck != 200 }}
       
       
       
