@@ -12,10 +12,6 @@ jobs:
 
     steps:
 #    - uses: actions/checkout@v2
-    - run: echo "POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)" >> $GITHUB_ENV
-    - name: echo poicheck
-      run: echo $POICHECK
-        
     - name: Azure Login
       uses: Azure/login@v1.1
       with:
@@ -52,7 +48,7 @@ jobs:
   
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production
-      if: POICHECK != 200 
+      if: github.poicheck != 200 
     - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
      
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
@@ -60,9 +56,9 @@ jobs:
     - run: az boards work-item create --title "Deployment of POI in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of POI in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: $POICHECK != 200
+      if: github.poicheck != 200
     - run: exit 1
-      if: $POICHECK != 200          
+      if: github.poicheck != 200          
     - run: az boards work-item create --title "Deployment POI Production; ${{ github.run_id }} " --type Task
       
       
@@ -105,7 +101,7 @@ jobs:
   
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22trips --slot staging --target-slot production
-      if: $TRIPSCHECK != 200
+      if: github.tripscheck != 200
     - run: az webapp stop --name openhack22trips --resource-group openhack22rg --slot staging
   
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
@@ -113,9 +109,9 @@ jobs:
     - run: az boards work-item create --title "Deployment of TRIPS in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of TRIPS in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: $TRIPSCHECK != 200
+      if: github.tripscheck != 200
     - run: exit 1
-      if: $TRIPSCHECK != 200    
+      if: github.tripscheck != 200    
     - run: az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }} " --type Task
       
   pulluser:  
@@ -156,7 +152,7 @@ jobs:
   
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userjava --slot staging --target-slot production
-      if: $USERJAVACHECK != 200
+      if: github.userjavacheck != 200
     - run: az webapp stop --name openhack22userjava --resource-group openhack22rg --slot staging
       
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
@@ -164,9 +160,9 @@ jobs:
     - run: az boards work-item create --title "Deployment of USER-JAVA in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of USER-JAVA in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: $USERJAVACHECK != 200
+      if: github.userjavacheck != 200
     - run: exit 1
-      if: $USERJAVACHECK != 200
+      if: github.userjavacheck != 200
     - run: az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }} " --type Task
 
   pulluserprofile:
@@ -207,7 +203,7 @@ jobs:
   
     - name: if the final result does not work, switch back
       run: az webapp deployment slot swap -g openhack22rg -n openhack22userprofile --slot staging --target-slot production
-      if: $USERCHECK != 200
+      if: github.usercheck != 200
     - run: az webapp stop --name openhack22userprofile --resource-group openhack22rg --slot staging
       
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV
@@ -215,5 +211,5 @@ jobs:
     - run: az boards work-item create --title "Deployment of USER in staging; ${{ github.run_id }} failed" --type Bug
       if: failure()
     - run: az boards work-item create --title "Deployment of USER in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
-      if: $USERCHECK != 200
+      if: github.usercheck != 200
     - run: az boards work-item create --title "Deployment USER Production; ${{ github.run_id }} " --type Task
