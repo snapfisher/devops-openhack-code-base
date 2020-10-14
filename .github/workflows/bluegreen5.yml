@@ -11,13 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:  
-    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc 
-    - run: |
-        BOARDID=$(az boards work-item create --title "Deployment POI Production; ${{ github.run_id }}" --type Task --query id -o tsv)
-        az boards work-item update --id ${BOARDID} --state Done 
-          
-          
 #    - uses: actions/checkout@v2
     - name: Azure Login
       uses: Azure/login@v1.1
@@ -84,8 +77,8 @@ jobs:
     - run: exit 1
       if: steps.vars-p.outputs.HCHECK != '200' ||  steps.vars-p-staging.outputs.HCHECK != '200'        
     - run: |
-        BOARDID = $(az boards work-item create --title "Deployment POI Production; ${{ github.run_id }}" --type Task --query id -o tsv)
-        az boards work-item update --id $BOARDID --state Done 
+        BOARDID=$(az boards work-item create --title "Deployment POI Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done 
       
       
   pulltrips:
@@ -155,8 +148,9 @@ jobs:
     - run: exit 1
       if: steps.vars-t.outputs.HCHECK != '200' ||  steps.vars-t-staging.outputs.HCHECK != '200'    
     - run: |
-        BOARDID = $(az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }}" --type Task --query id -o tsv)
-        az boards work-item update --id $BOARDID --state Done    
+        BOARDID=$(az boards work-item create --title "Deployment TRIPS Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done    
+        
   pulluser:  
     needs: [pullpoi, pulltrips]
     runs-on: ubuntu-latest
@@ -223,8 +217,8 @@ jobs:
     - run: exit 1
       if: steps.vars-j.outputs.HCHECK != '200' || steps.vars-j-staging.outputs.HCHECK != '200'
     - run: |
-        BOARDID = $(az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }}" --type Task --query id -o tsv)
-        az boards work-item update --id $BOARDID --state Done
+        BOARDID=$(az boards work-item create --title "Deployment USER-JAVA Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done
 
   pulluserprofile:
     needs: [pullpoi, pulltrips, pulluser]
@@ -290,6 +284,6 @@ jobs:
     - run: az boards work-item create --title "Deployment of USER in Production; ${{ github.run_id }} failed, rolled back to last version" --type Bug
       if: steps.vars-u.outputs.HCHECK == '200'
     - run: |
-        BOARDID = $(az boards work-item create --title "Deployment USER Production; ${{ github.run_id }}" --type Task --query id -o tsv)
-        az boards work-item update --id $BOARDID --state Done
+        BOARDID=$(az boards work-item create --title "Deployment USER Production; ${{ github.run_id }}" --type Task --query id -o tsv)
+        az boards work-item update --id ${BOARDID} --state Done
         
