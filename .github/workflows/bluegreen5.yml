@@ -11,6 +11,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - run: echo "POICHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi.azurewebsites.net/api/healthcheck/poi)" >> $GITHUB_ENV
+  
+    - name: die on 200
+      run: exit 1
+      if: github.poicheck != '200' 
+  
+    - name: die on 200 string
+      run: exit 1
+      if: github.poicheck != '200' 
+      
+    - run: exit 1
+          
 #    - uses: actions/checkout@v2
     - name: Azure Login
       uses: Azure/login@v1.1
