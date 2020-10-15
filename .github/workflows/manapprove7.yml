@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:  
-    - run: 'echo "${{ toJson(github.event.pull_request.merged) }}"'
+    - run: 'echo "${{ toJson(github.event.pull_request.changed_files) }}"'
       
     - name: call the logic app to send the notification
       run: |
