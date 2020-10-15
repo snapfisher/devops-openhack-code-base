@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:  
+    - run: 'echo "field: ${{ github.event.client_payload }}"'
+      
     - name: call the logic app to send the notification
       run: |
         AUTHHEADER="Content-Type: application/json"
