@@ -6,7 +6,6 @@ on:
     
 jobs:
   sendnotificationemail:
-
     runs-on: ubuntu-latest
 
     steps:  
