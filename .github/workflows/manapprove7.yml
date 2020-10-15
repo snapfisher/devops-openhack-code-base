@@ -15,9 +15,9 @@ jobs:
       run: |
         AUTHHEADER="Content-Type: application/json"
         JSONBODY='{"address": "pfisher@microsoft.com", "prurl": "'
-        HTMLURL="${{ toJson(github.event.pull_request.html_url) }}"
+        HTMLURL=${{ toJson(github.event.pull_request.html_url) }}
         JSONBODYMID='", "prtitle": "'
-        TITLE="${{ toJson(github.event.pull_request.title) }}"
+        TITLE=${{ toJson(github.event.pull_request.title) }}
         JSONBODYEND='"}'
         URL='https://prod-52.eastus2.logic.azure.com:443/workflows/0309a97d290240f185b2c7919f113b16/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=VCZVQ6cr_B4RKpjQSzRL5eeVJAiVFfgBXRI7QYclz2E'
         echo "${JSONBODY}${HTMLURL}${JSONBODYMID}${TITLE}${JSONBODYEND}"
