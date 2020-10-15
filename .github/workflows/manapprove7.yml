@@ -1,0 +1,16 @@
+name: Manual Approval 7
+
+on:
+  pull_request:
+    types: [opened, ready-for-review]
+    
+jobs:
+  sendnotificationemail:
+
+    runs-on: ubuntu-latest
+
+    steps:  
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
