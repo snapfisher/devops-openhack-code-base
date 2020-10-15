@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:  
-    - run: 'echo "toJson(${{ github.event.id }})"'
+    - run: 'echo "${{ toJson(github.event.id) }}"'
       
     - name: call the logic app to send the notification
       run: |
