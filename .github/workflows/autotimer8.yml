@@ -57,10 +57,10 @@ jobs:
         
     - name: if we are at 10, go to 20
       run: az webapp traffic-routing set --distribution staging=25 --name openhack22poi --resource-group openhack22rg
-      if: steps.vars-t-staging.outputs.STAGINGSTATUS == '10.0'
+      if: steps.vars-t-staging-p.outputs.STAGINGSTATUS == '10.0'
     
     - name: if we are at 25, go to 50
       run: az webapp traffic-routing set --distribution staging=50 --name openhack22poi --resource-group openhack22rg
-      if: steps.vars-t-staging.outputs.STAGINGSTATUS == '25.0'
+      if: steps.vars-t-staging-p.outputs.STAGINGSTATUS == '25.0'
 
    # if this is 50, send a notification (this would happen a lot.....so we need to limit these)
