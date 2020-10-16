@@ -1,0 +1,35 @@
+name: Autotimer8
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron  '*/2 * * * *'
+
+
+jobs:
+  timerpoi:
+  
+    runs-on: ubuntu-latest
+
+    steps:  
+    - name: set up access to azure boards 
+      run: |
+        echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
+        az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+        
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        
+    - name:get the staging slot on/off status
+      id: vars-p-staging
+      shell: bash
+      run: |
+        STAGINGSTATUS=$(az webapp show --name openhack22trips --resource-group openhack22rg --slot staging --query state -o tsv)
+        echo "set-output name=STAGINGSTATUS::${STAGINGSTATUS}"
+        echo ::set-output name=STAGINGSTATUS::${STAGINGSTATUS}
+        
+    - name: if the staging slot is stopped, there is nothing to do
+      run: exit
+      if: steps.vars-t-staging.outputs.HCHECK == 'Stopped'  
