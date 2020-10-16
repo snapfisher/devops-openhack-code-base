@@ -59,6 +59,7 @@ jobs:
  
     - name: exit if error
       run: exit 1
+      if: steps.vars-p-staging.outputs.HCHECK != '200'   
 
     - name: set an iteration on the run id
       run: az boards iteration project create --name ${GITHUB_RUN_ID}
