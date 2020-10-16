@@ -13,4 +13,4 @@ jobs:
     steps:  
     - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
     - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-    - run: az boards interation project create --name 72 --start-date 2020-10-16T00:09:31Z
+    - run: az boards iteration project create --name 72 --start-date 2020-10-16T00:09:31Z
