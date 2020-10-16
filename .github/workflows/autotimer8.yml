@@ -1,6 +1,9 @@
 name: Autotimer8
 
-on: push
+on: 
+  workflow_dispatch:
+  schedule:
+    - cron:  '*/2 * * * *'
 
 
 jobs:
