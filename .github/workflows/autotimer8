@@ -1,8 +1,7 @@
 name: Autotimer8
 
-on:
-  push:
-    branches: 'main'
+on: push
+
 
 jobs:
   timerpoi:
