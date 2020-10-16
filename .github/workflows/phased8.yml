@@ -2,15 +2,66 @@ name: Phased Initial Rollout
 
 on:
   workflow_dispatch:
-  push:
-    branches: 'main'
+#  push:
+#    branches: 'main'
 
 jobs:
-  createdeployment:
+  createpoideployment:
 
     runs-on: ubuntu-latest
 
     steps:  
-    - run: echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
-    - run: az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
-    - run: az boards iteration project create --name 72
+    - name: set up access ot azure boards 
+      run: |
+        echo "AZURE_DEVOPS_EXT_PAT=${{secrets.ADO_PAT}}" >> $GITHUB_ENV 
+        az devops configure --defaults project=devops-openhack-code-base organization=https://dev.azure.com/restonmtc
+        
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+      
+    - run: docker login openhack22acr.azurecr.io --username ${{secrets.AZURE_SP_ID}} --password ${{secrets.AZURE_SP_PWD}}
+    - run: docker pull openhack22acr.azurecr.io/devopsoh/api-poi:changeme
+    - run: docker tag openhack22acr.azurecr.io/devopsoh/api-poi:changeme openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
+    - run: docker push openhack22acr.azurecr.io/devopsoh/api-poi:${GITHUB_RUN_ID}
+    - name: start staging slot 
+      run: az webapp start --name openhack22poi --resource-group openhack22rg --slot staging
+
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+
+    - name: deploy to staging slot
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'openhack22poi'
+        slot-name: 'staging'
+        images: 'openhack22acr.azurecr.io/devopsoh/api-poi:${{ github.run_id }}'
+        
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
+        
+    - name: perform health check on staging
+      id: vars-p-staging
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi-staging.azurewebsites.net/api/healthcheck/poi)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - name: if staging is not running, shut down slot
+      run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+      if: steps.vars-p-staging.outputs.HCHECK != '200'      
+ 
+    - name: exit if error
+      run: exit 1
+
+    - name: set an iteration on the run id
+      run: az boards iteration project create --name ${GITHUB_RUN_ID}
+    
+    - name: set staging to handle 10% of the volume
+      run: az webapp traffic-routing set --distribution staging=10 --name openhack22poi --resource-group openhack22rg
