@@ -22,7 +22,7 @@ jobs:
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
         
-    - name:get the staging slot on/off status
+    - name: get the staging slot on/off status
       id: vars-p-staging
       shell: bash
       run: |
