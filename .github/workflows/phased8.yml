@@ -1,0 +1,6 @@
+name: Phased Initial Rollout
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 'main'
