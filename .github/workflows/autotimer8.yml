@@ -2,8 +2,8 @@ name: Autotimer8
 
 on: 
   workflow_dispatch:
-  schedule:
-    - cron:  '*/2 * * * *'
+#  schedule:
+#    - cron:  '*/2 * * * *'
 
 jobs:
   timerpoi:
