@@ -65,9 +65,6 @@ jobs:
         exit 1
         if: steps.vars-p-staging-p.outputs.STAGINGSTATUS == '25.0'
 
-    - name: add build number to config
-      run: az webapp config appsettings set --name openhack22poi --resource-group openhack22rg --slot staging --slot-settings "DEPLOYAPPVERSION=${GITHUB_RUN_ID}"
-      
     - name: call the logic app to send the notification
       run: |
         CTHEADER="Content-Type: application/json"
