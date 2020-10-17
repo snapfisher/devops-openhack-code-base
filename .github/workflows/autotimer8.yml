@@ -60,16 +60,16 @@ jobs:
       if: steps.vars-p-staging-p.outputs.STAGINGSTATUS == '10.0'
     
     - name: if we are at 25, go to 50
-      run: az webapp traffic-routing set --distribution staging=50 --name openhack22poi --resource-group openhack22rg
-      if: steps.vars-p-staging-p.outputs.STAGINGSTATUS == '25.0'
+      run: |
+        az webapp traffic-routing set --distribution staging=50 --name openhack22poi --resource-group openhack22rg
+        exit 1
+        if: steps.vars-p-staging-p.outputs.STAGINGSTATUS == '25.0'
 
-   # if this is 50, send a notification (this would happen a lot.....so we need to limit these)
-      
     - name: call the logic app to send the notification
       run: |
         CTHEADER="Content-Type: application/json"
         JSONBODY='{"address": "pfisher@microsoft.com", "prurl": "https://github.com/snapfisher/devops-openhack-code-base/actions?query=workflow%3A.github%2Fworkflows%2Fmanualfinish8.ymlhttps://github.com/snapfisher/devops-openhack-code-base/actions?query=workflow%3A.github%2Fworkflows%2Fmanualfinish8.yml", "prtitle": "'
-        TITLE=${{ toJson(github.event.pull_request.title) }}
+        TITLE=$(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv)
         JSONBODYEND='"}'
         URL='https://prod-07.eastus2.logic.azure.com:443/workflows/c07eaa8191f140e5bab0b54ab4954187/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=nTUKzeefgXx6uyt5qd7HRPtmXpa40iOzwZvwIHUD5qE'
         echo "${JSONBODY}${HTMLURL}${JSONBODYMID}${TITLE}${JSONBODYEND}"
