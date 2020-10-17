@@ -41,11 +41,28 @@ jobs:
         echo "set-output name=HCHECK::${HCHECK}"
         echo ::set-output name=HCHECK::${HCHECK}
         
-    - name: if we fail the health check, shut off the staging slot
-      run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
-      if: steps.vars-p-staging-h.outputs.HCHECK != '200'
-      
-    # check for bugs here, and shut off if any
+    - name: if we fail the health check, shut off the staging slot, send a bug to dev ops, and then exit
+      run: |
+        az boards work-item create --title "Staging error; Poi version $(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv) in staging has failed the health check.  It is being disabled" --type Bug --query id -o tsv
+        az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+        exit 1
+        if: steps.vars-p-staging-h.outputs.HCHECK != '200'
+    
+    - name: check for bugs here, and shut off if any
+      id: vars-nbugs
+      shell: bash
+      run: |
+        VER=$(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv)
+        ITER="devops-openhack-code-base\\${VER}"
+        echo "iter ${ITER}
+        NUMBUGS=$(az boards query --wiql "SELECT [System.Title] FROM workitems WHERE ([System.IterationPath] = ''${ITER}'')" --query [].fields[].'"System.Title"' -o tsv | wc -l)
+        echo "set-output name=NUMBUGS::${NUMBUGS}"
+        echo ::set-output name=NUMBUGS::${NUMBUGS} 
+        
+    - name: always stop temp
+      run: |
+        az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+        exit 1
   
     - name: get the staging slot on/off status
       id: vars-p-staging-p
