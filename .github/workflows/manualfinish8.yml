@@ -3,5 +3,55 @@ name: Autotimer8
 on: 
   workflow_dispatch:
 
+jobs:
+  manualfinish:
   
+    runs-on: ubuntu-latest
   
+    steps:  
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+
+    - name: get the staging slot on/off status
+      id: vars-p-staging
+      shell: bash
+      run: |
+        STAGINGSTATUS=$(az webapp show --name openhack22poi --resource-group openhack22rg --slot staging --query state -o tsv)
+        echo "set-output name=STAGINGSTATUS::${STAGINGSTATUS}"
+        echo ::set-output name=STAGINGSTATUS::${STAGINGSTATUS}
+        
+    - name: if the staging slot is stopped, there is nothing to do
+      run: exit
+      if: steps.vars-p-staging.outputs.STAGINGSTATUS == 'Stopped'
+    
+    - name: perform health check on staging
+      id: vars-p-staging-h
+      shell: bash
+      run: |
+        HCHECK=$(curl -o /dev/null -s -w "%{http_code}\n" https://openhack22poi-staging.azurewebsites.net/api/healthcheck/poi)
+        echo "set-output name=HCHECK::${HCHECK}"
+        echo ::set-output name=HCHECK::${HCHECK}
+        
+    - name: if we fail the health check, shut off the staging slot, send a bug to dev ops, and then exit
+      run: |
+        VER=$(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv)
+        echo "ver ${VER}"
+        ITER="devops-openhack-code-base\\${VER}"
+        echo "iter ${ITER}"
+        az boards work-item create --title "Staging error; Poi version $(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv) in staging has failed the health check.  It is being disabled" --type Bug --iteration "${ITER}" --query id -o tsv
+        az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+        exit 1
+      if: steps.vars-p-staging-h.outputs.HCHECK != '200' 
+      
+    - name: Switch
+      run: az webapp deployment slot swap -g openhack22rg -n openhack22poi --slot staging --target-slot production 
+      
+    - name: stop staging, we are now running 100% in production
+      run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+      
+      
+      
+      
+      
