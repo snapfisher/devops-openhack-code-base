@@ -42,11 +42,14 @@ jobs:
         echo ::set-output name=HCHECK::${HCHECK}
         
     - name: if we fail the health check, shut off the staging slot, send a bug to dev ops, and then exit
-      run: |
-        az boards work-item create --title "Staging error; Poi version $(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv) in staging has failed the health check.  It is being disabled" --type Bug --query id -o tsv
-        az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
-        exit 1
-        if: steps.vars-p-staging-h.outputs.HCHECK != '200'
+      run: az boards work-item create --title "Staging error; Poi version $(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv) in staging has failed the health check.  It is being disabled" --type Bug --query id -o tsv
+      if: steps.vars-p-staging-h.outputs.HCHECK != '200'  
+       
+    - run: az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
+      if: steps.vars-p-staging-h.outputs.HCHECK != '200'   
+     
+    - run:  exit 1
+      if: steps.vars-p-staging-h.outputs.HCHECK != '200' 
     
     - name: check for bugs here, and shut off if any
       id: vars-nbugs
