@@ -60,6 +60,14 @@ jobs:
     - name: exit if error
       run: exit 1
       if: steps.vars-p-staging.outputs.HCHECK != '200'   
+    
+    - name: add build number to config
+      run: az webapp config appsettings set --name openhack22poi --resource-group openhack22rg --slot staging --slot-settings "DEPLOYAPPVERSION=${GITHUB_RUN_ID}"
+      
+    - name: Sleep for 60 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '60s'
 
     - name: set an iteration on the run id
       run: az boards iteration project create --name ${GITHUB_RUN_ID}
