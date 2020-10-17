@@ -52,7 +52,7 @@ jobs:
       run: |
         VER=$(az webapp config appsettings list --name openhack22poi --resource-group openhack22rg --slot staging --query "[?contains(name, 'DEPLOYAPPVERSION')].value" -o tsv)
         echo "ver ${VER}"
-        ITER="devops-openhack-code-base\${VER}"
+        ITER="devops-openhack-code-base\\${VER}"
         echo "iter ${ITER}"
         
     - name: check for bugs here, and shut off if any
