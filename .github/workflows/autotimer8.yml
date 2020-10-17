@@ -60,10 +60,11 @@ jobs:
         echo "set-output name=NUMBUGS::${NUMBUGS}"
         echo ::set-output name=NUMBUGS::${NUMBUGS} 
         
-    - name: always stop temp
+    - name: Stop if there are any bugs
       run: |
         az webapp stop --name openhack22poi --resource-group openhack22rg --slot staging
         exit 1
+      if: steps.vars-nbugs.outputs.STAGINGSTATUS != '0'
   
     - name: get the staging slot on/off status
       id: vars-p-staging-p
