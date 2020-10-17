@@ -1,0 +1,7 @@
+name: Autotimer8
+
+on: 
+  workflow_dispatch:
+  push: 'main'
+  
+  
